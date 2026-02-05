@@ -38,7 +38,7 @@ client.on('messageCreate', async (message) => {
     const member = message.member;
     const userId = message.author.id;
 
-    /* ========= BASIC COMMANDS ========= */
+/* ========= BASIC COMMANDS ========= */
 
 if (msg === '!ping')
     return message.reply('📍 Pong!');
@@ -51,6 +51,32 @@ if (msg === '!time')
 
 if (msg === '!knock')
     return message.reply('🚪 Who’s there?');
+
+/* ========= ARRAYS ========= */
+
+const eightBall = [
+  "Yes 👍",
+  "No 👎",
+  "Maybe 🤔",
+  "Definitely 💯",
+  "Ask again later ⏳",
+  "I don’t think so 😅",
+  "Without a doubt 😎",
+  "Very unlikely 🚫",
+  "Signs point to yes ✨",
+  "Better not tell you now 🤫"
+];
+
+const memes = [
+  "https://i.imgur.com/1ZQZ1ZQ.jpeg",
+  "https://i.imgur.com/2YQZ2YQ.jpeg",
+  "https://i.imgur.com/3XQZ3XQ.jpeg",
+  "https://i.imgur.com/4WQZ4WQ.jpeg",
+  "https://i.imgur.com/5VQZ5VQ.jpeg",
+  "https://i.imgur.com/6UQZ6UQ.jpeg",
+  "https://i.imgur.com/7TQZ7TQ.jpeg",
+  "https://i.imgur.com/8SQZ8SQ.jpeg"
+];
 
 const jokes = [
 "Why did the developer go broke? Because he used up all his cache 💸",
@@ -67,19 +93,29 @@ const jokes = [
 "Computers make very fast, very accurate mistakes ⚡",
 "To understand recursion, you must first understand recursion 🔁",
 "Why did the array break up? Too many issues 💔",
-"I don’t always test my code… but when I do, I do it in production 😬",
-
+"I don’t always test my code… but when I do, I do it in production 😬"
 ];
+
+/* ========= FUN COMMANDS ========= */
 
 if (msg === '!joke')
   return message.reply(jokes[Math.floor(Math.random() * jokes.length)]);
 
+if (msg === '!meme') {
+  const meme = memes[Math.floor(Math.random() * memes.length)];
+  return message.reply(meme);
+}
+
+if (msg.startsWith('!8ball')) {
+  const answer = eightBall[Math.floor(Math.random() * eightBall.length)];
+  return message.reply(`🎱 ${answer}`);
+}
 
 if (msg === '!bot')
     return message.reply('🤖 HarizBot is alive and watching you...');
 
 if (msg === '!coin')
-    return message.reply('🪙 Heads');
+    return message.reply(Math.random() < 0.5 ? "🪙 Heads" : "🪙 Tails");
 
 if (msg === '!dice')
     return message.reply(`🎲 You rolled: ${Math.floor(Math.random() * 6) + 1}`);
@@ -93,7 +129,6 @@ if (msg === '!fact')
 if (msg === '!motivate')
     return message.reply('💪 Don’t stop. You’re building something most people quit on.');
 
-
 if (msg === '!help') {
     return message.reply(`
 🤖 **HarizBot Commands**
@@ -103,6 +138,8 @@ if (msg === '!help') {
 !time
 !knock
 !joke
+!meme
+!8ball <question>
 !bot
 !coin
 !dice
@@ -112,7 +149,6 @@ if (msg === '!help') {
 !help
 `);
 }
-
     /* ========= SPAM DETECTION ========= */
     const now = Date.now();
     if (!spamMap.has(userId)) spamMap.set(userId, []);
