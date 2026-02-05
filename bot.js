@@ -58,19 +58,40 @@ if (msg === '!joke')
 if (msg === '!bot')
     return message.reply('🤖 HarizBot is alive and watching you...');
 
-if (msg === '!help')
+if (msg === '!coin')
+    return message.reply('🪙 Heads');
+
+if (msg === '!dice')
+    return message.reply(`🎲 You rolled: ${Math.floor(Math.random() * 6) + 1}`);
+
+if (msg === '!rate')
+    return message.reply(`⭐ I rate you ${Math.floor(Math.random() * 10) + 1}/10`);
+
+if (msg === '!fact')
+    return message.reply('🧠 Did you know? JavaScript was made in 10 days.');
+
+if (msg === '!motivate')
+    return message.reply('💪 Don’t stop. You’re building something most people quit on.');
+
+
+if (msg === '!help') {
     return message.reply(`
-**HarizBot Commands**
+🤖 **HarizBot Commands**
+
 !ping
 !hello
 !time
 !knock
 !joke
 !bot
+!coin
+!dice
+!rate
+!fact
+!motivate
 !help
 `);
-
-    }
+}
 
     /* ========= SPAM DETECTION ========= */
     const now = Date.now();
