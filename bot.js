@@ -52,8 +52,28 @@ if (msg === '!time')
 if (msg === '!knock')
     return message.reply('🚪 Who’s there?');
 
+const jokes = [
+"Why did the developer go broke? Because he used up all his cache 💸",
+"I told my computer I needed a break… it said no problem and froze 🥶",
+"Debugging: Being the detective in a crime movie where you are also the murderer 🕵️",
+"Why do programmers prefer dark mode? Because light attracts bugs 🐛",
+"There are only 10 types of people. Those who understand binary and those who don’t 😎",
+"I would tell you a UDP joke… but you might not get it 📡",
+"My code works. I have no idea why 🤯",
+"My code doesn’t work. I have no idea why 😭",
+"Programming is 10% writing code and 90% wondering why it doesn’t work",
+"I love deadlines. I love the whooshing sound they make as they fly by ✈️",
+"Why did the function return early? It had a date 🗓️",
+"Computers make very fast, very accurate mistakes ⚡",
+"To understand recursion, you must first understand recursion 🔁",
+"Why did the array break up? Too many issues 💔",
+"I don’t always test my code… but when I do, I do it in production 😬",
+
+];
+
 if (msg === '!joke')
-    return message.reply('Why did the developer go broke? Because he used up all his cache 💸');
+  return message.reply(jokes[Math.floor(Math.random() * jokes.length)]);
+
 
 if (msg === '!bot')
     return message.reply('🤖 HarizBot is alive and watching you...');
