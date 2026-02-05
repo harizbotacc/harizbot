@@ -39,16 +39,37 @@ client.on('messageCreate', async (message) => {
     const userId = message.author.id;
 
     /* ========= BASIC COMMANDS ========= */
-    if (msg === '!ping') return message.reply('🏓 Pong!');
-    if (msg === '!hello') return message.reply(`Hello ${message.author.username} 👋`);
-    if (msg === '!time') return message.reply(`🕒 Server time: ${new Date().toLocaleString()}`);
 
-    /* ========= SWEAR DETECTION ========= */
-    if (BAD_WORDS.some(word => msg.includes(word))) {
-        await message.delete().catch(() => {});
-        await message.channel.send(`⚠️ ${message.author}, watch your language!`);
-        if (logs) logs.send(`🚨 ${message.author.username} used a bad word: "${message.content}"`);
-        return;
+if (msg === '!ping')
+    return message.reply('📍 Pong!');
+
+if (msg === '!hello')
+    return message.reply(`Hello ${message.author.username} 👋`);
+
+if (msg === '!time')
+    return message.reply(`🕒 Server Time: ${new Date().toLocaleString()}`);
+
+if (msg === '!knock')
+    return message.reply('🚪 Who’s there?');
+
+if (msg === '!joke')
+    return message.reply('Why did the developer go broke? Because he used up all his cache 💸');
+
+if (msg === '!bot')
+    return message.reply('🤖 HarizBot is alive and watching you...');
+
+if (msg === '!help')
+    return message.reply(`
+**HarizBot Commands**
+!ping
+!hello
+!time
+!knock
+!joke
+!bot
+!help
+`);
+
     }
 
     /* ========= SPAM DETECTION ========= */
