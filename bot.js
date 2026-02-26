@@ -1,14 +1,10 @@
-const express = require('express');
-const { Client, GatewayIntentBits } = require('discord.js');
-require('dotenv').config();
-
-/* ========= WEB SERVER FOR RENDER ========= */
-const app = express();
-app.get('/', (req, res) => res.send('Hariz bot alive'));
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🌐 Web server running on port ${PORT}`));
+const express = require("express");
+const cors = require("cors");
+const { Client, GatewayIntentBits } = require("discord.js");
+require("dotenv").config();
 
 /* ========= DISCORD BOT ========= */
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -18,7 +14,60 @@ const client = new Client({
     ],
 });
 
+/* ========= WEB SERVER FOR RENDER ========= */
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+    res.send("Hariz bot alive");
+});
+
+app.post("/order", async (req, res) => {
+    console.log("New Order:", req.body);
+
+    try {
+        const { orderId, items, total, bank, status } = req.body;
+
+        const ORDER_CHANNEL_ID = "1476398520738119800"; // <-- CHANGE THIS
+
+        const channel = await client.channels.fetch(ORDER_CHANNEL_ID);
+
+        const itemText = items.map(i =>
+            `• ${i.name} (${i.sizeText}) - RM ${i.price}`
+        ).join("\n");
+
+        await channel.send({
+            embeds: [{
+                title: "🛒 New Dreamy Dough Order",
+                color: 0xb88a44,
+                fields: [
+                    { name: "Order ID", value: orderId },
+                    { name: "Bank", value: bank },
+                    { name: "Status", value: status },
+                    { name: "Items", value: itemText },
+                    { name: "Total", value: "RM " + total }
+                ],
+                timestamp: new Date()
+            }]
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🌍 Web server running on port ${PORT}`);
+});
+
 /* ========= DATA STORAGE ========= */
+
 const warnings = new Map();
 const spamMap = new Map();
 
@@ -103,7 +152,6 @@ client.on('messageCreate', async (message) => {
     const member = message.member;
     const logs = message.guild.channels.cache.find(c => c.name === 'logs');
 
-    /* ========= BAD WORD FILTER ========= */
     for (const word of BAD_WORDS) {
         if (msg.includes(word)) {
             await message.delete();
@@ -111,7 +159,6 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    /* ========= COMMAND HANDLER ========= */
     if (msg.startsWith('!')) {
         const args = msg.slice(1).split(" ");
         const command = args[0];
@@ -126,7 +173,6 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    /* ========= SPAM DETECTION ========= */
     const now = Date.now();
     if (!spamMap.has(userId)) spamMap.set(userId, []);
     const timestamps = spamMap.get(userId);
@@ -154,4 +200,5 @@ client.on('messageCreate', async (message) => {
 });
 
 /* ========= LOGIN ========= */
+
 client.login(process.env.TOKEN);
