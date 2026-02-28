@@ -74,11 +74,36 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
             return res.status(500).json({ error: "Channel not found" });
         }
 
-        let receiptLink = "No receipt uploaded";
+       const embed = {
+    title: "🛒 New Dreamy Dough Order",
+    color: 0xb88a44,
+    fields: [
+        { name: "Order ID", value: orderId, inline: true },
+        { name: "Customer Name", value: name, inline: true },
+        { name: "Phone", value: phone, inline: true },
+        { name: "Email", value: email || "Not provided", inline: true },
+        { name: "Address", value: address },
+        { name: "Items Ordered", value: items || "Not provided" },
+        { name: "Total", value: "RM " + total, inline: true }
+    ],
+    timestamp: new Date()
+};
 
-        if (req.file) {
-            receiptLink = `https://harizbot.onrender.com/uploads/${req.file.filename}`;
-        }
+if (req.file) {
+    await channel.send({
+        embeds: [embed],
+        files: [
+            {
+                attachment: path.join(__dirname, uploadFolder, req.file.filename),
+                name: req.file.filename
+            }
+        ]
+    });
+} else {
+    await channel.send({
+        embeds: [embed]
+    });
+}
 
         await channel.send({
             embeds: [{
