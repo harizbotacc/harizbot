@@ -117,7 +117,7 @@ if (req.file) {
                     { name: "Address", value: address },
                     { name: "Items Ordered", value: items || "Not provided" },
                     { name: "Total", value: "RM " + total, inline: true },
-                    { name: "Receipt", value: receiptLink }
+                    
                 ],
                 timestamp: new Date()
             }]
