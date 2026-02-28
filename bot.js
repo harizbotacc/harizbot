@@ -105,24 +105,6 @@ if (req.file) {
     });
 }
 
-        await channel.send({
-            embeds: [{
-                title: "🛒 New Dreamy Dough Order",
-                color: 0xb88a44,
-                fields: [
-                    { name: "Order ID", value: orderId, inline: true },
-                    { name: "Customer Name", value: name, inline: true },
-                    { name: "Phone", value: phone, inline: true },
-                    { name: "Email", value: email || "Not provided", inline: true },
-                    { name: "Address", value: address },
-                    { name: "Items Ordered", value: items || "Not provided" },
-                    { name: "Total", value: "RM " + total, inline: true },
-                    
-                ],
-                timestamp: new Date()
-            }]
-        });
-
         res.json({ success: true });
 
     } catch (err) {
