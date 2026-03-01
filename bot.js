@@ -84,8 +84,6 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
         { name: "Email", value: email || "Not provided", inline: true },
         { name: "Address", value: address },
         { name: "Items Ordered", value: items || "Not provided" },
-        { name: "Subtotal", value: "RM " + (subtotal || 0), inline: true },
-        { name: "Shipping", value: "RM " + (shipping || 0), inline: true },
         { name: "Final Total", value: "RM " + total, inline: true }
     ],
     timestamp: new Date()
