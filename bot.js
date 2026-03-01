@@ -9,7 +9,11 @@ require("dotenv").config();
 /* ================= DISCORD CLIENT ================= */
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
 
 /* ================= EXPRESS APP ================= */
@@ -111,6 +115,45 @@ if (req.file) {
         console.error("Order error:", err);
         res.status(500).json({ error: "Server error" });
     }
+});
+
+client.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
+
+    // Only allow in order channel
+    const ORDER_CHANNEL_ID = "1476398520738119800";
+    if (message.channel.id !== ORDER_CHANNEL_ID) return;
+
+    if (!message.content.startsWith("!verify")) return;
+
+    const args = message.content.split(" ");
+    const orderId = args[1];
+
+    if (!orderId) {
+        return message.reply("Please provide an Order ID.");
+    }
+
+    // Find the order message
+    const messages = await message.channel.messages.fetch({ limit: 50 });
+
+    const target = messages.find(msg =>
+        msg.embeds.length > 0 &&
+        msg.embeds[0].fields?.some(field =>
+            field.name === "Order ID" && field.value === orderId
+        )
+    );
+
+    if (!target) {
+        return message.reply("Order ID not found.");
+    }
+
+    const embed = target.embeds[0].data;
+
+    embed.title = "🛒 New Dreamy Dough Order — 🟢 VERIFIED";
+
+    await target.edit({ embeds: [embed] });
+
+    message.reply(`✅ ORDER ${orderId} VERIFIED`);
 });
 
 /* ================= START SERVER AFTER BOT READY ================= */
