@@ -73,6 +73,7 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
 
         const ORDER_CHANNEL_ID = "1476398520738119800";
         const channel = await client.channels.fetch(ORDER_CHANNEL_ID);
+        const NEW_ORDER_ROLE_ID = "1478175343138312245";
 
         if (!channel) {
             return res.status(500).json({ error: "Channel not found" });
@@ -93,8 +94,11 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
     timestamp: new Date()
 };
 
+const content = `🚨 **NEW DREAMY DOUGH ORDER** 🚨\n<@&${NEW_ORDER_ROLE_ID}>`;
+
 if (req.file) {
     await channel.send({
+        content: content,
         embeds: [embed],
         files: [
             {
@@ -105,10 +109,10 @@ if (req.file) {
     });
 } else {
     await channel.send({
+        content: content,
         embeds: [embed]
     });
 }
-
         res.json({ success: true });
 
     } catch (err) {
