@@ -94,7 +94,7 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
     timestamp: new Date()
 };
 
-const content = `<@1478175343138312245> 💰 Order ${orderId} received.`;
+const content = `<@1478279653864243245> 💰 Order ${orderId} received.`;
 
 if (req.file) {
     await channel.send({
