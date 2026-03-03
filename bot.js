@@ -94,7 +94,7 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
     timestamp: new Date()
 };
 
-const content = `🚨 **NEW DREAMY DOUGH ORDER** 🚨\n<@&${NEW_ORDER_ROLE_ID}>`;
+const content = `<@YOUR_USER_ID> 💰 Order ${orderId} received.`;
 
 if (req.file) {
     await channel.send({
