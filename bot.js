@@ -16,6 +16,20 @@ const client = new Client({
     ]
 });
 
+/* ================= CHANNEL IDS ================= */
+
+const ORDER_CHANNEL_ID = "1476398520738119800";
+const PREPARING_CHANNEL_ID = "1478997392006054012";
+const SHIPPED_CHANNEL_ID = "1478997317800693822";
+
+/* ================= INVENTORY ================= */
+
+let stock = {
+    dark: 40,
+    white: 40,
+    hazel: 40
+};
+
 /* ================= EXPRESS APP ================= */
 
 const app = express();
@@ -49,6 +63,35 @@ app.get("/", (req, res) => {
     res.send("Dreamy Dough Order Server Running 🚀");
 });
 
+/* ================= INVENTORY UPDATE ================= */
+
+function updateStock(itemsText) {
+
+    if (!itemsText) return;
+
+    const lines = itemsText.split("\n");
+
+    lines.forEach(line => {
+
+        if (line.includes("Dark")) {
+            const qty = parseInt(line.match(/Qty:\s*(\d+)/)?.[1] || 1);
+            stock.dark -= qty;
+        }
+
+        if (line.includes("White")) {
+            const qty = parseInt(line.match(/Qty:\s*(\d+)/)?.[1] || 1);
+            stock.white -= qty;
+        }
+
+        if (line.includes("Hazel")) {
+            const qty = parseInt(line.match(/Qty:\s*(\d+)/)?.[1] || 1);
+            stock.hazel -= qty;
+        }
+
+    });
+
+}
+
 /* ================= ORDER ROUTE ================= */
 
 app.post("/order", upload.single("receipt"), async (req, res) => {
@@ -71,13 +114,14 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const ORDER_CHANNEL_ID = "1476398520738119800";
         const channel = await client.channels.fetch(ORDER_CHANNEL_ID);
         const NEW_ORDER_ROLE_ID = "1478175343138312245";
 
         if (!channel) {
             return res.status(500).json({ error: "Channel not found" });
         }
+
+        updateStock(items);
 
        const embed = {
     title: "🛒 New Dreamy Dough Order",
@@ -121,23 +165,21 @@ if (req.file) {
     }
 });
 
+/* ================= DISCORD COMMANDS ================= */
+
 client.on("messageCreate", async (message) => {
-    if (message.author.bot) return;
 
-    // Only allow in order channel
-    const ORDER_CHANNEL_ID = "1476398520738119800";
-    if (message.channel.id !== ORDER_CHANNEL_ID) return;
+if (message.author.bot) return;
 
-    if (!message.content.startsWith("!verify")) return;
+const content = message.content.trim();
 
-    const args = message.content.split(" ");
+/* ===== VERIFY ===== */
+
+if (content.startsWith("!verify")) {
+
+    const args = content.split(" ");
     const orderId = args[1];
 
-    if (!orderId) {
-        return message.reply("Please provide an Order ID.");
-    }
-
-    // Find the order message
     const messages = await message.channel.messages.fetch({ limit: 50 });
 
     const target = messages.find(msg =>
@@ -147,17 +189,70 @@ client.on("messageCreate", async (message) => {
         )
     );
 
-    if (!target) {
-        return message.reply("Order ID not found.");
-    }
+    if (!target) return message.reply("Order not found.");
+
+    const preparingChannel = await client.channels.fetch(PREPARING_CHANNEL_ID);
 
     const embed = target.embeds[0].data;
+    embed.title = "🍪 Dreamy Dough Order — PREPARING";
 
-    embed.title = "🛒 New Dreamy Dough Order — 🟢 VERIFIED";
+    await preparingChannel.send({
+        embeds: [embed],
+        files: target.attachments.map(a => a.url)
+    });
 
-    await target.edit({ embeds: [embed] });
+    await target.delete();
 
-    message.reply(`✅ ORDER ${orderId} VERIFIED`);
+    return message.reply(`✅ ORDER ${orderId} moved to PREPARING`);
+}
+
+/* ===== SHIP ===== */
+
+if (content.startsWith("!ship")) {
+
+    const args = content.split(" ");
+    const orderId = args[1];
+
+    const preparingChannel = await client.channels.fetch(PREPARING_CHANNEL_ID);
+    const shippedChannel = await client.channels.fetch(SHIPPED_CHANNEL_ID);
+
+    const messages = await preparingChannel.messages.fetch({ limit: 50 });
+
+    const target = messages.find(msg =>
+        msg.embeds.length > 0 &&
+        msg.embeds[0].fields?.some(field =>
+            field.name === "Order ID" && field.value === orderId
+        )
+    );
+
+    if (!target) return message.reply("Order not found in preparing.");
+
+    const embed = target.embeds[0].data;
+    embed.title = "📦 Dreamy Dough Order — SHIPPED";
+
+    await shippedChannel.send({
+        embeds: [embed],
+        files: target.attachments.map(a => a.url)
+    });
+
+    await target.delete();
+
+    return message.reply(`📦 ORDER ${orderId} SHIPPED`);
+}
+
+/* ===== STOCK ===== */
+
+if (content === "!stock") {
+
+    return message.reply(`
+🍪 Dreamy Dough Stock
+
+Dark Secrets: ${stock.dark}
+White Symphony: ${stock.white}
+Hazel B: ${stock.hazel}
+`);
+}
+
 });
 
 /* ================= START SERVER AFTER BOT READY ================= */
