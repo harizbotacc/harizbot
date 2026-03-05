@@ -33,6 +33,17 @@ let stock = {
     hazelFiezta: 40
 };
 
+/* ================= DAILY STATS ================= */
+
+let dailyStats = {
+    orders: 0,
+    jars: 0,
+    revenue: 0,
+    dark: 0,
+    white: 0,
+    hazel: 0
+};
+
 /* ================= EXPRESS APP ================= */
 
 const app = express();
@@ -108,17 +119,43 @@ lines.forEach(line => {
 
 const qty = parseInt(line.match(/Qty:\s*(\d+)/)?.[1] || 1);
 
-if (line.includes("Dark") && line.includes("Gift")) stock.darkGift -= qty
-if (line.includes("Dark") && line.includes("Fiezta")) stock.darkFiezta -= qty
+if (line.includes("Dark") && line.includes("Gift")) {
+stock.darkGift -= qty
+dailyStats.jars += qty
+dailyStats.dark += qty
+}
 
-if (line.includes("White") && line.includes("Gift")) stock.whiteGift -= qty
-if (line.includes("White") && line.includes("Fiezta")) stock.whiteFiezta -= qty
+if (line.includes("Dark") && line.includes("Fiezta")) {
+stock.darkFiezta -= qty
+dailyStats.jars += qty
+dailyStats.dark += qty
+}
 
-if (line.includes("Hazel") && line.includes("Gift")) stock.hazelGift -= qty
-if (line.includes("Hazel") && line.includes("Fiezta")) stock.hazelFiezta -= qty
+if (line.includes("White") && line.includes("Gift")) {
+stock.whiteGift -= qty
+dailyStats.jars += qty
+dailyStats.white += qty
+}
+
+if (line.includes("White") && line.includes("Fiezta")) {
+stock.whiteFiezta -= qty
+dailyStats.jars += qty
+dailyStats.white += qty
+}
+
+if (line.includes("Hazel") && line.includes("Gift")) {
+stock.hazelGift -= qty
+dailyStats.jars += qty
+dailyStats.hazel += qty
+}
+
+if (line.includes("Hazel") && line.includes("Fiezta")) {
+stock.hazelFiezta -= qty
+dailyStats.jars += qty
+dailyStats.hazel += qty
+}
 
 })
-
 }
 
 /* ================= ORDER ROUTE ================= */
@@ -139,6 +176,9 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
             items,
             total
         } = req.body;
+
+dailyStats.orders += 1
+dailyStats.revenue += parseFloat(total)
 
         if (!orderId || !name || !phone || !address || !total) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -328,9 +368,43 @@ return message.reply(`🍪 ${flavor} stock reset to ${amount}`)
 
 });
 
+/* ================= DAILY REPORT ================= */
+
+async function sendDailyReport(){
+
+const channel = await client.channels.fetch(ORDER_CHANNEL_ID)
+
+const report = `
+📊 Dreamy Dough Daily Report
+
+Orders Today: ${dailyStats.orders}
+Jars Sold: ${dailyStats.jars}
+
+Dark Secrets: ${dailyStats.dark}
+White Symphony: ${dailyStats.white}
+Hazel B: ${dailyStats.hazel}
+
+Revenue: RM ${dailyStats.revenue}
+`
+
+await channel.send(report)
+
+// reset stats for next day
+dailyStats = {
+orders: 0,
+jars: 0,
+revenue: 0,
+dark: 0,
+white: 0,
+hazel: 0
+}
+
+}
+
 /* ================= START SERVER AFTER BOT READY ================= */
 
 client.once("ready", () => {
+
 console.log("🤖 Dreamy Dough Order Bot Online!")
 
 const PORT = process.env.PORT || 3000
@@ -338,6 +412,22 @@ app.listen(PORT, () => {
 console.log(`🌍 Server running on port ${PORT}`)
 })
 
+/* ================= DAILY REPORT TIMER ================= */
+
+setInterval(() => {
+
+const now = new Date()
+
+const hour = now.getHours()
+const minute = now.getMinutes()
+
+if(minute % 2 === 0){
+sendDailyReport()
+}
+
+}, 60000)
+
+})
 })
 
 /* ================= LOGIN ================= */
