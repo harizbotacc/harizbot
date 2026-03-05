@@ -421,7 +421,7 @@ const now = new Date()
 const hour = now.getHours()
 const minute = now.getMinutes()
 
-if(minute % 2 === 0){
+if(hour === 22 && minute === 0){
 sendDailyReport()
 }
 
