@@ -44,6 +44,15 @@ let dailyStats = {
     hazel: 0
 };
 
+let weeklyStats = {
+    orders: 0,
+    jars: 0,
+    revenue: 0,
+    dark: 0,
+    white: 0,
+    hazel: 0
+};
+
 /* ================= EXPRESS APP ================= */
 
 const app = express();
@@ -126,37 +135,55 @@ const qty = parseInt(line.match(/Qty:\s*(\d+)/)?.[1] || 1);
 if (line.includes("Dark") && line.includes("Gift")) {
 minusStock("darkGift", qty)
 dailyStats.jars += qty
+weeklyStats.jars += qty
+
 dailyStats.dark += qty
+weeklyStats.dark += qty
 }
 
 if (line.includes("Dark") && line.includes("Fiezta")) {
 minusStock("darkFiezta", qty)
 dailyStats.jars += qty
+weeklyStats.jars += qty
+
 dailyStats.dark += qty
+weeklyStats.dark += qty
 }
 
 if (line.includes("White") && line.includes("Gift")) {
 minusStock("whiteGift", qty)
 dailyStats.jars += qty
+weeklyStats.jars += qty
+
 dailyStats.white += qty
+weeklyStats.white += qty
 }
 
 if (line.includes("White") && line.includes("Fiezta")) {
 minusStock("whiteFiezta", qty)
 dailyStats.jars += qty
+weeklyStats.jars += qty
+
 dailyStats.white += qty
+weeklyStats.white += qty
 }
 
 if (line.includes("Hazel") && line.includes("Gift")) {
 minusStock("hazelGift", qty)
 dailyStats.jars += qty
+weeklyStats.jars += qty
+
 dailyStats.hazel += qty
+weeklyStats.hazel += qty
 }
 
 if (line.includes("Hazel") && line.includes("Fiezta")) {
 minusStock("hazelFiezta", qty)
 dailyStats.jars += qty
+weeklyStats.jars += qty
+
 dailyStats.hazel += qty
+weeklyStats.hazel += qty
 }
 
 })
@@ -183,6 +210,9 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
 
 dailyStats.orders += 1
 dailyStats.revenue += parseFloat(total) || 0
+
+weeklyStats.orders += 1
+weeklyStats.revenue += parseFloat(total) || 0
 
         if (!orderId || !name || !phone || !address || !total) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -329,6 +359,42 @@ Fiezta Jar: ${stock.hazelFiezta}
 `);
 }
 
+if (content === "!lowstock") {
+
+let msg = "⚠ Low Stock Items\n\n";
+
+if(stock.darkGift <= 3) msg += `Dark Gift: ${stock.darkGift}\n`;
+if(stock.darkFiezta <= 3) msg += `Dark Fiezta: ${stock.darkFiezta}\n`;
+
+if(stock.whiteGift <= 3) msg += `White Gift: ${stock.whiteGift}\n`;
+if(stock.whiteFiezta <= 3) msg += `White Fiezta: ${stock.whiteFiezta}\n`;
+
+if(stock.hazelGift <= 3) msg += `Hazel Gift: ${stock.hazelGift}\n`;
+if(stock.hazelFiezta <= 3) msg += `Hazel Fiezta: ${stock.hazelFiezta}\n`;
+
+if(msg === "⚠ Low Stock Items\n\n") msg += "✅ No low stock items";
+
+return message.reply(msg);
+}
+
+if (content === "!weeklyreport") {
+
+const report = `
+📊 Weekly Performance Report
+
+🧾 Orders: ${weeklyStats.orders}
+🍪 Jars Sold: ${weeklyStats.jars}
+
+🍫 Dark: ${weeklyStats.dark}
+🤍 White: ${weeklyStats.white}
+🌰 Hazel: ${weeklyStats.hazel}
+
+💰 Revenue: RM ${weeklyStats.revenue}
+`;
+
+return message.reply(report);
+}
+
 /* ===== RESTOCK ===== */
 
 if (content.startsWith("!restock")) {
@@ -409,13 +475,26 @@ Hazel B
 await channel.send(report)
 
 dailyStats = {
-orders: 0,
-jars: 0,
-revenue: 0,
-dark: 0,
-white: 0,
-hazel: 0
+   orders: 0,
+   jars: 0,
+   revenue: 0,
+   dark: 0,
+   white: 0,
+   hazel: 0
 }
+
+const day = new Date().getDay();
+if(day === 0){
+weeklyStats = {
+   orders: 0,
+   jars: 0,
+   revenue: 0,
+   dark: 0,
+   white: 0,
+   hazel: 0
+};
+}
+
 }
 
 /* ================= START SERVER AFTER BOT READY ================= */
