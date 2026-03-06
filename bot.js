@@ -109,6 +109,10 @@ await channel.send(warnings.join("\n"))
 
 /* ================= INVENTORY UPDATE ================= */
 
+function minusStock(key, qty){
+stock[key] = Math.max(0, stock[key] - qty);
+}
+
 function updateStock(itemsText) {
 
 if (!itemsText) return;
@@ -120,37 +124,37 @@ lines.forEach(line => {
 const qty = parseInt(line.match(/Qty:\s*(\d+)/)?.[1] || 1);
 
 if (line.includes("Dark") && line.includes("Gift")) {
-stock.darkGift -= qty
+minusStock("darkGift", qty)
 dailyStats.jars += qty
 dailyStats.dark += qty
 }
 
 if (line.includes("Dark") && line.includes("Fiezta")) {
-stock.darkFiezta -= qty
+minusStock("darkFiezta", qty)
 dailyStats.jars += qty
 dailyStats.dark += qty
 }
 
 if (line.includes("White") && line.includes("Gift")) {
-stock.whiteGift -= qty
+minusStock("whiteGift", qty)
 dailyStats.jars += qty
 dailyStats.white += qty
 }
 
 if (line.includes("White") && line.includes("Fiezta")) {
-stock.whiteFiezta -= qty
+minusStock("whiteFiezta", qty)
 dailyStats.jars += qty
 dailyStats.white += qty
 }
 
 if (line.includes("Hazel") && line.includes("Gift")) {
-stock.hazelGift -= qty
+minusStock("hazelGift", qty)
 dailyStats.jars += qty
 dailyStats.hazel += qty
 }
 
 if (line.includes("Hazel") && line.includes("Fiezta")) {
-stock.hazelFiezta -= qty
+minusStock("hazelFiezta", qty)
 dailyStats.jars += qty
 dailyStats.hazel += qty
 }
@@ -178,7 +182,7 @@ app.post("/order", upload.single("receipt"), async (req, res) => {
         } = req.body;
 
 dailyStats.orders += 1
-dailyStats.revenue += parseFloat(total)
+dailyStats.revenue += parseFloat(total) || 0
 
         if (!orderId || !name || !phone || !address || !total) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -331,39 +335,40 @@ if (content.startsWith("!restock")) {
 
 const args = content.split(" ");
 
-const flavor = args[1];
-const amount = parseInt(args[2]);
+const flavor = args[1]?.toLowerCase();
 
 if (flavor === "all") {
-
-stock.darkGift = amount
-stock.darkFiezta = amount
-stock.whiteGift = amount
-stock.whiteFiezta = amount
-stock.hazelGift = amount
-stock.hazelFiezta = amount
-
-return message.reply(`🍪 All stock reset to ${amount}`)
-
+const amount = parseInt(args[2]);
+if (isNaN(amount)) return message.reply("⚠ Enter valid amount");
+Object.keys(stock).forEach(k => stock[k] = amount);
+return message.reply(`🍪 All stock reset to ${amount}`);
 }
 
-if (flavor === "dark") {
-stock.darkGift = amount
-stock.darkFiezta = amount
+const size = args[2]?.toLowerCase();
+const amount = parseInt(args[3]);
+
+if (isNaN(amount)) return message.reply("⚠ Enter valid amount");
+
+const map = {
+dark: ["darkGift", "darkFiezta"],
+white: ["whiteGift", "whiteFiezta"],
+hazel: ["hazelGift", "hazelFiezta"]
+};
+
+if (!map[flavor]) return message.reply("⚠ Flavor not found");
+
+if (!size) {
+map[flavor].forEach(k => stock[k] = amount);
+return message.reply(`🍪 ${flavor} all sizes restocked to ${amount}`);
 }
 
-if (flavor === "white") {
-stock.whiteGift = amount
-stock.whiteFiezta = amount
-}
+const key = flavor + (size === "gift" ? "Gift" : "Fiezta");
 
-if (flavor === "hazel") {
-stock.hazelGift = amount
-stock.hazelFiezta = amount
-}
+if (!stock.hasOwnProperty(key)) return message.reply("⚠ Size not found");
 
-return message.reply(`🍪 ${flavor} stock reset to ${amount}`)
+stock[key] = amount;
 
+return message.reply(`🍪 ${flavor} ${size} restocked to ${amount}`);
 }
 
 });
@@ -377,19 +382,32 @@ const channel = await client.channels.fetch(ORDER_CHANNEL_ID)
 const report = `
 📊 Dreamy Dough Daily Report
 
-Orders Today: ${dailyStats.orders}
-Jars Sold: ${dailyStats.jars}
+🧾 Orders Today: ${dailyStats.orders}
+🍪 Jars Sold: ${dailyStats.jars}
 
-Dark Secrets: ${dailyStats.dark}
-White Symphony: ${dailyStats.white}
-Hazel B: ${dailyStats.hazel}
+🍫 Dark Secrets Sold: ${dailyStats.dark}
+🤍 White Symphony Sold: ${dailyStats.white}
+🌰 Hazel B Sold: ${dailyStats.hazel}
 
-Revenue: RM ${dailyStats.revenue}
+💰 Revenue: RM ${dailyStats.revenue}
+
+📦 Remaining Stock
+
+Dark Secrets
+• Gift: ${stock.darkGift}
+• Fiezta: ${stock.darkFiezta}
+
+White Symphony
+• Gift: ${stock.whiteGift}
+• Fiezta: ${stock.whiteFiezta}
+
+Hazel B
+• Gift: ${stock.hazelGift}
+• Fiezta: ${stock.hazelFiezta}
 `
 
 await channel.send(report)
 
-// reset stats for next day
 dailyStats = {
 orders: 0,
 jars: 0,
@@ -398,7 +416,6 @@ dark: 0,
 white: 0,
 hazel: 0
 }
-
 }
 
 /* ================= START SERVER AFTER BOT READY ================= */
@@ -414,21 +431,23 @@ console.log(`🌍 Server running on port ${PORT}`)
 
 /* ================= DAILY REPORT TIMER ================= */
 
+let lastReportDate = null;
+
 setInterval(() => {
 
-const now = new Date()
+const now = new Date();
+const today = now.toDateString();
 
-const hour = now.getHours()
-const minute = now.getMinutes()
-
-if(hour === 22 && minute === 0){
-sendDailyReport()
+if(now.getHours() === 22 && now.getMinutes() === 0){
+if(lastReportDate !== today){
+sendDailyReport();
+lastReportDate = today;
+}
 }
 
 }, 60000)
 
-})
-
 /* ================= LOGIN ================= */
+})
 
 client.login(process.env.TOKEN)
