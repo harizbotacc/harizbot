@@ -25,14 +25,27 @@ const SHIPPED_CHANNEL_ID = "1478997317800693822";
 
 /* ================= INVENTORY ================= */
 
-let stock = {
-    darkGift: 40,
-    darkFiezta: 40,
-    whiteGift: 40,
-    whiteFiezta: 40,
-    hazelGift: 40,
-    hazelFiezta: 40
-};
+const STOCK_FILE = "./stock.json";
+
+function loadStock(){
+    if(fs.existsSync(STOCK_FILE)){
+        return JSON.parse(fs.readFileSync(STOCK_FILE));
+    }
+    return {
+        darkGift: 40,
+        darkFiezta: 40,
+        whiteGift: 40,
+        whiteFiezta: 40,
+        hazelGift: 40,
+        hazelFiezta: 40
+    };
+}
+
+function saveStock(){
+    fs.writeFileSync(STOCK_FILE, JSON.stringify(stock, null, 2));
+}
+
+let stock = loadStock();
 
 /* ================= DAILY STATS ================= */
 
@@ -123,7 +136,8 @@ if(warnings.length > 0){
 /* ================= INVENTORY UPDATE ================= */
 
 function minusStock(key, qty){
-stock[key] = Math.max(0, stock[key] - qty);
+    stock[key] = Math.max(0, stock[key] - qty);
+    saveStock();
 }
 
 function updateStock(itemsText) {
@@ -411,6 +425,7 @@ if (flavor === "all") {
 const amount = parseInt(args[2]);
 if (isNaN(amount)) return message.reply("⚠ Enter valid amount");
 Object.keys(stock).forEach(k => stock[k] = amount);
+saveStock();
 return message.reply(`🍪 All stock reset to ${amount}`);
 }
 
@@ -429,6 +444,7 @@ if (!map[flavor]) return message.reply("⚠ Flavor not found");
 
 if (!size) {
 map[flavor].forEach(k => stock[k] = amount);
+saveStock();
 return message.reply(`🍪 ${flavor} all sizes restocked to ${amount}`);
 }
 
@@ -437,6 +453,7 @@ const key = flavor + (size === "gift" ? "Gift" : "Fiezta");
 if (!stock.hasOwnProperty(key)) return message.reply("⚠ Size not found");
 
 stock[key] = amount;
+saveStock();
 
 return message.reply(`🍪 ${flavor} ${size} restocked to ${amount}`);
 }
