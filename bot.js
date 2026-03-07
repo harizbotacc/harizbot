@@ -19,6 +19,7 @@ const client = new Client({
 /* ================= CHANNEL IDS ================= */
 
 const ORDER_CHANNEL_ID = "1476398520738119800";
+const STAFF_ROLE_ID = "1478279653864243245";
 const PREPARING_CHANNEL_ID = "1478997392006054012";
 const SHIPPED_CHANNEL_ID = "1478997317800693822";
 
@@ -111,7 +112,10 @@ if(stock.hazelGift === 0) warnings.push(`❌ Hazel B Gift Jar SOLD OUT`)
 if(stock.hazelFiezta === 0) warnings.push(`❌ Hazel B Fiezta Jar SOLD OUT`)
 
 if(warnings.length > 0){
-await channel.send(warnings.join("\n"))
+    await channel.send(
+        `<@&${STAFF_ROLE_ID}> ⚠ **Low Stock Alert!**\n\n` +
+        warnings.join("\n")
+    );
 }
 
 }
@@ -514,14 +518,17 @@ let lastReportDate = null;
 
 setInterval(() => {
 
-const now = new Date();
+const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" })
+);
+
 const today = now.toDateString();
 
 if(now.getHours() === 22 && now.getMinutes() === 0){
-if(lastReportDate !== today){
-sendDailyReport();
-lastReportDate = today;
-}
+    if(lastReportDate !== today){
+        sendDailyReport();
+        lastReportDate = today;
+    }
 }
 
 }, 60000)
