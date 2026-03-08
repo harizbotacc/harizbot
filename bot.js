@@ -240,6 +240,21 @@ weeklyStats.revenue += parseFloat(total) || 0
 
         updateStock(items);
 
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+const waPhone = cleanPhone.startsWith("0") ? "6" + cleanPhone : cleanPhone;
+
+const confirmMsg = encodeURIComponent(
+`Hi ${name}! 🍪✨
+
+Your Dreamy Dough order is confirmed!
+
+Order ID: ${orderId}
+
+We’ll begin preparing it shortly 💛`
+);
+
+const confirmLink = `https://wa.me/${waPhone}?text=${confirmMsg}`;
+
         const embed = {
             title: "🛒 New Dreamy Dough Order",
             color: 0xb88a44,
@@ -250,7 +265,11 @@ weeklyStats.revenue += parseFloat(total) || 0
                 { name: "Email", value: email || "Not provided", inline: true },
                 { name: "Address", value: address },
                 { name: "Items Ordered", value: items || "Not provided" },
-                { name: "Final Total", value: "RM " + total, inline: true }
+                { name: "Final Total", value: "RM " + total, inline: true },
+                {
+                  name: "📲 Customer Update",
+                  value: `[Send Order Confirmation 🧾](${confirmLink})`
+       }
             ],
             timestamp: new Date()
         };
@@ -310,6 +329,32 @@ const preparingChannel = await client.channels.fetch(PREPARING_CHANNEL_ID);
 const embed = target.embeds[0].data;
 embed.title = "🍪 Dreamy Dough Order — PREPARING";
 
+const nameField = embed.fields.find(f => f.name === "Customer Name");
+const phoneField = embed.fields.find(f => f.name === "Phone");
+
+const custName = nameField?.value || "Customer";
+const custPhone = phoneField?.value || "";
+
+const cleanPhone = custPhone.replace(/[^0-9]/g, '');
+const waPhone = cleanPhone.startsWith("0") ? "6" + cleanPhone : cleanPhone;
+
+const prepMsg = encodeURIComponent(
+`Hi ${custName}! 👩‍🍳🍪
+
+Good news! We’re now preparing your Dreamy Dough cookies fresh from the oven ✨
+
+Order ID: ${orderId}
+
+We’ll notify you once they’re out for delivery 💛`
+);
+
+const prepLink = `https://wa.me/${waPhone}?text=${prepMsg}`;
+
+embed.fields.push({
+    name: "📲 Notify Customer",
+    value: `[We’re preparing your cookies 👩‍🍳](${prepLink})`
+});
+
 await preparingChannel.send({
 embeds: [embed],
 files: target.attachments.map(a => a.url)
@@ -344,6 +389,49 @@ if (!target) return message.reply("Order not found in preparing.");
 
 const embed = target.embeds[0].data;
 embed.title = "📦 Dreamy Dough Order — SHIPPED";
+
+const nameField = embed.fields.find(f => f.name === "Customer Name");
+const phoneField = embed.fields.find(f => f.name === "Phone");
+
+const custName = nameField?.value || "Customer";
+const custPhone = phoneField?.value || "";
+
+const cleanPhone = custPhone.replace(/[^0-9]/g, '');
+const waPhone = cleanPhone.startsWith("0") ? "6" + cleanPhone : cleanPhone;
+
+const shipMsg = encodeURIComponent(
+`Hi ${custName}! 🚚🍪
+
+Great news — your Dreamy Dough cookies are on the way!
+
+Order ID: ${orderId}
+
+They’ll arrive soon. Get ready for something sweet 💛`
+);
+
+const shipLink = `https://wa.me/${waPhone}?text=${shipMsg}`;
+
+embed.fields.push({
+    name: "📲 Notify Customer",
+    value: `[Your cookies are on the way 🚚](${shipLink})`
+});
+
+const thanksMsg = encodeURIComponent(
+`Thank you so much ${custName}! 💖🍪
+
+Your Dreamy Dough cookies have safely arrived!
+
+We truly appreciate your support for our small handmade bakery 💛
+
+Hope every bite brings you comfort & joy ✨`
+);
+
+const thanksLink = `https://wa.me/${waPhone}?text=${thanksMsg}`;
+
+embed.fields.push({
+    name: "💖 Appreciation",
+    value: `[Send Thank You Message 💖](${thanksLink})`
+});
 
 await shippedChannel.send({
 embeds: [embed],
