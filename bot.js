@@ -18,8 +18,9 @@ const client = new Client({
 
 /* ================= CHANNEL IDS ================= */
 
+const COMPLETED_CHANNEL_ID = "1480035649988984832";
 const ORDER_CHANNEL_ID = "1476398520738119800";
-const STAFF_ROLE_ID = "1478279653864243245";
+const STAFF_ROLE_ID = "1478175343138312245";
 const PREPARING_CHANNEL_ID = "1478997392006054012";
 const SHIPPED_CHANNEL_ID = "1478997317800693822";
 
@@ -442,6 +443,40 @@ await target.delete();
 
 return message.reply(`📦 ORDER ${orderId} SHIPPED`);
 
+}
+
+/* ===== COMPLETE ===== */
+
+if (content.startsWith("!complete")) {
+
+const args = content.split(" ");
+const orderId = args[1];
+
+const shippedChannel = await client.channels.fetch(SHIPPED_CHANNEL_ID);
+const completedChannel = await client.channels.fetch(COMPLETED_CHANNEL_ID);
+
+const messages = await shippedChannel.messages.fetch({ limit: 50 });
+
+const target = messages.find(msg =>
+msg.embeds.length > 0 &&
+msg.embeds[0].fields?.some(field =>
+field.name === "Order ID" && field.value === orderId
+)
+);
+
+if (!target) return message.reply("Order not found in shipped.");
+
+const embed = target.embeds[0].data;
+embed.title = "🏆 Dreamy Dough Order — COMPLETED";
+
+await completedChannel.send({
+embeds: [embed],
+files: target.attachments.map(a => a.url)
+});
+
+await target.delete();
+
+return message.reply(`🏆 ORDER ${orderId} COMPLETED`);
 }
 
 /* ===== STOCK ===== */
