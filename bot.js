@@ -1,10 +1,19 @@
 const express = require("express");
+const app = express();
+
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { Client, GatewayIntentBits } = require("discord.js");
 require("dotenv").config();
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`🌍 Server running on port ${PORT}`);
+});
+
 
 /* ================= DISCORD CLIENT ================= */
 
@@ -647,11 +656,7 @@ client.once("ready", () => {
 
 console.log("🤖 Dreamy Dough Order Bot Online!")
 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => {
-console.log(`🌍 Server running on port ${PORT}`)
-})
-
+});
 /* ================= DAILY REPORT TIMER ================= */
 
 let lastReportDate = null;
