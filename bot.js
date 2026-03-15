@@ -79,7 +79,6 @@ let weeklyStats = {
 
 /* ================= EXPRESS APP ================= */
 
-const app = express();
 app.use(cors());
 
 /* ================= FILE UPLOAD SETUP ================= */
