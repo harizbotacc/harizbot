@@ -679,6 +679,5 @@ if(now.getHours() === 22 && now.getMinutes() === 0){
 }, 60000)
 
 /* ================= LOGIN ================= */
-})
 
 client.login(process.env.TOKEN)
